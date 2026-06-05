@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deals Shopee - Affiliate Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --shopee-orange: #ee4d2d;
+            --shopee-red: #d0011b;
+            --shopee-yellow: #f6a700;
+            --dark: #1a1a2e;
+            --light: #ffffff;
+            --admin-bg: #0f0f23;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ========== BUBBLE ANIMATION ========== */
+        .bubbles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rise linear infinite;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { transform: translateY(-120vh) scale(0.5); opacity: 0; }
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ========== ADMIN PANEL TOGGLE ========== */
+        .admin-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* ========== ADMIN PANEL ========== */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--admin-bg);
+            z-index: 999;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-red));
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .admin-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .close-admin {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .close-admin:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .admin-body {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ========== ADD PRODUCT FORM ========== */
+        .add-form {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .add-form h3 {
+            color: var(--shopee-yellow);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--shopee-orange);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-red));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(238, 77, 45, 0.4);
+        }
+
+        /* ========== PRODUCT LIST ========== */
+        .product-list {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .product-list h3 {
+            color: var(--shopee-yellow);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .product-item {
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .product-item:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateX(5px);
+        }
+
+        .product-info h4 {
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .product-info p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: var(--shopee-yellow);
+            color: var(--dark);
+        }
+
+        .btn-delete {
+            background: var(--shopee-red);
+            color: white;
+        }
+
+        .btn-edit:hover, .btn-delete:hover {
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            padding: 40px;
+        }
+
+        /* ========== IMPORT/EXPORT ========== */
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-data {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-data:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-shopee {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--light);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        /* ========== COUNTDOWN ========== */
+        .countdown-section {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 600px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .countdown-title {
+            color: var(--shopee-yellow);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .countdown-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px 20px;
+            min-width: 80px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px rgba(246, 167, 0, 0.3); }
+            to { box-shadow: 0 0 20px rgba(246, 167, 0, 0.6); }
+        }
+
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--light);
+            display: block;
+        }
+
+        .countdown-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        /* ========== PRODUCTS GRID ========== */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .product-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            animation: fadeInUp 0.6s ease both;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .product-card:hover::before {
+            left: 100%;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--shopee-red);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 10;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .price-original {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .price-discount {
+            color: var(--shopee-red);
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--shopee-yellow);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .btn-buy {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--shopee-orange) 0%, var(--shopee-red) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .btn-buy:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(238, 77, 45, 0.4);
+        }
+
+        /* ========== CLICK EFFECT ========== */
+        .click-effect {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--shopee-yellow);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: clickBurst 0.6s ease-out forwards;
+        }
+
+        @keyframes clickBurst {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .logo-shopee { font-size: 2.5rem; }
+            .products-grid { grid-template-columns: 1fr; }
+            .countdown { gap: 8px; }
+            .countdown-item { min-width: 60px; padding: 10px 15px; }
+            .countdown-number { font-size: 1.8rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .admin-header h2 { font-size: 1.2rem; }
+        }
+
+        /* ========== SCROLLBAR ========== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--shopee-orange); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Bubble Animation -->
+    <div class="bubbles-container" id="bubbles"></div>
+
+    <!-- Admin Toggle Button -->
+    <button class="admin-toggle" onclick="toggleAdmin()">
+        ⚙️ Admin Panel
+    </button>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>🛠️ Panel Admin - Kelola Produk</h2>
+            <button class="close-admin" onclick="toggleAdmin()">✕ Tutup</button>
+        </div>
+        
+        <div class="admin-body">
+            <!-- Data Actions -->
+            <div class="data-actions">
+                <button class="btn-data" onclick="exportData()">📥 Export Data (JSON)</button>
+                <button class="btn-data" onclick="importData()">📤 Import Data (JSON)</button>
+                <button class="btn-data" onclick="clearAllData()" style="background: rgba(208,1,27,0.3);">🗑️ Hapus Semua</button>
+            </div>
+
+            <!-- Add Product Form -->
+            <div class="add-form">
+                <h3>➕ Tambah Produk Baru</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nama Produk</label>
+                        <input type="text" id="prodName" placeholder="Contoh: Smartphone Android 5G">
+                    </div>
+                    <div class="form-group">
+                        <label>Link Affiliate Shopee</label>
+                        <input type="url" id="prodLink" placeholder="https://shopee.co.id/...">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Harga Asli (Rp)</label>
+                        <input type="number" id="prodPriceOriginal" placeholder="5999000">
+                    </div>
+                    <div class="form-group">
+                        <label>Harga Diskon (Rp)</label>
+                        <input type="number" id="prodPriceDiscount" placeholder="1799000">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Diskon (%)</label>
+                        <input type="number" id="prodDiscount" placeholder="70" min="1" max="99">
+                    </div>
+                    <div class="form-group">
+                        <label>Rating (1-5)</label>
+                        <input type="number" id="prodRating" placeholder="4.9" min="1" max="5" step="0.1">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Icon Produk</label>
+                        <select id="prodIcon">
+                            <option value="📱">📱 Smartphone</option>
+                            <option value="💻">💻 Laptop</option>
+                            <option value="🎧">🎧 Headphone</option>
+                            <option value="⌚">⌚ Smartwatch</option>
+                            <option value="📷">📷 Kamera</option>
+                            <option value="🎮">🎮 Game Console</option>
+                            <option value="👟">👟 Sepatu</option>
+                            <option value="👕">👕 Baju</option>
+                            <option value="💄">💄 Kosmetik</option>
+                            <option value="🏠">🏠 Rumah</option>
+                            <option value="🚗">🚗 Otomotif</option>
+                            <option value="📚">📚 Buku</option>
+                            <option value="🍔">🍔 Makanan</option>
+                            <option value="⚡">⚡ Elektronik</option>
+                            <option value="🎁">🎁 Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Warna Background</label>
+                        <select id="prodColor">
+                            <option value="gradient1">Pink-Merah</option>
+                            <option value="gradient2">Biru-Cyan</option>
+                            <option value="gradient3">Pink-Kuning</option>
+                            <option value="gradient4">Hijau-Mint</option>
+                            <option value="gradient5">Orange-Cream</option>
+                            <option value="gradient6">Ungu-Kuning</option>
+                            <option value="gradient7">Merah-Merah</option>
+                            <option value="gradient8">Biru-Biru</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Terjual (opsional)</label>
+                    <input type="text" id="prodSold" placeholder="Contoh: 12.5K">
+                </div>
+
+                <button class="btn-add" onclick="addProduct()">➕ Tambah Produk</button>
+            </div>
+
+            <!-- Product List -->
+            <div class="product-list">
+                <h3>📋 Daftar Produk (<span id="productCount">0</span>)</h3>
+                <div id="adminProductList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo-shopee">🛒 Deals Shopee</h1>
+            <p class="tagline">Promo & Diskon Terbaik Setiap Hari!</p>
+        </header>
+
+        <!-- Countdown -->
+        <div class="countdown-section">
+            <div class="countdown-title">⏰ Flash Sale Berakhir Dalam:</div>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">04</span>
+                    <span class="countdown-label">Jam</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">32</span>
+                    <span class="countdown-label">Menit</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="seconds">15</span>
+                    <span class="countdown-label">Detik</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Container -->
+        <div class="products-grid" id="productsContainer"></div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2026 Deals Shopee | Affiliate Partner</p>
+            <p>Kelola produk via Admin Panel ⚙️</p>
+        </footer>
+    </div>
+
+    <script>
+        // ========== DATA STORAGE ==========
+        const STORAGE_KEY = 'shopee_affiliate_products';
+        
+        // Default products if no data
+        const defaultProducts = [
+            {
+                id: 1,
+                name: "Smartphone Android 5G - RAM 8GB ROM 128GB",
+                link: "https://shopee.co.id/product1",
+                priceOriginal: 5999000,
+                priceDiscount: 1799000,
+                discount: 70,
+                rating: 4.9,
+                icon: "📱",
+                color: "gradient1",
+                sold: "12.5K"
+            },
+            {
+                id: 2,
+                name: "Laptop Gaming Core i7 RTX 3060 16GB RAM",
+                link: "https://shopee.co.id/product2",
+                priceOriginal: 15999000,
+                priceDiscount: 7999000,
+                discount: 50,
+                rating: 4.8,
+                icon: "💻",
+                color: "gradient2",
+                sold: "8.2K"
+            },
+            {
+                id: 3,
+                name: "Headphone Wireless ANC - Noise Cancelling",
+                link: "https://shopee.co.id/product3",
+                priceOriginal: 2499000,
+                priceDiscount: 874000,
+                discount: 65,
+                rating: 4.7,
+                icon: "🎧",
+                color: "gradient3",
+                sold: "25K"
+            }
+        ];
+
+        // Color gradients
+        const gradients = {
+            gradient1: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            gradient2: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            gradient3: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            gradient4: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            gradient5: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            gradient6: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+            gradient7: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
+            gradient8: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        };
+
+        // ========== LOAD DATA ==========
+        function loadProducts() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+            // Save defaults if first time
+            saveProducts(defaultProducts);
+            return defaultProducts;
+        }
+
+        function saveProducts(products) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+        }
+
+        // ========== RENDER PRODUCTS ==========
+        function renderProducts() {
+            const container = document.getElementById('productsContainer');
+            const products = loadProducts();
+            
+            container.innerHTML = products.map((product, index) => `
+                <div class="product-card" onclick="handleClick(event, '${product.link}')" style="animation-delay: ${index * 0.1}s">
+                    <div class="product-image" style="background: ${gradients[product.color] || gradients.gradient1}">
+                        ${product.icon}
+                        <span class="discount-badge">-${product.discount}%</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">${product.name}</h3>
+                        <div class="product-price">
+                            <span class="price-original">Rp${formatNumber(product.priceOriginal)}</span>
+                            <span class="price-discount">Rp${formatNumber(product.priceDiscount)}</span>
+                        </div>
+                        <div class="product-rating">
+                            ${'⭐'.repeat(Math.floor(product.rating))} ${product.rating} (${product.sold} terjual)
+                        </div>
+                        <button class="btn-buy">🔥 Beli Sekarang</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // ========== ADMIN FUNCTIONS ==========
+        function toggleAdmin() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            if (panel.style.display === 'block') {
+                renderAdminList();
+            }
+        }
+
+        function renderAdminList() {
+            const products = loadProducts();
+            const list = document.getElementById('adminProductList');
+            const count = document.getElementById('productCount');
+            
+            count.textContent = products.length;
+            
+            if (products.length === 0) {
+                list.innerHTML = '<div class="empty-state">Belum ada produk. Tambahkan di atas!</div>';
+                return;
+            }
+            
+            list.innerHTML = products.map(p => `
+                <div class="product-item">
+                    <div class="product-info">
+                        <h4>${p.icon} ${p.name}</h4>
+                        <p>Rp${formatNumber(p.priceDiscount)} (-${p.discount}%) | ⭐${p.rating}</p>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-edit" onclick="editProduct(${p.id})">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteProduct(${p.id})">🗑️ Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addProduct() {
+            const name = document.getElementById('prodName').value.trim();
+            const link = document.getElementById('prodLink').value.trim();
+            const priceOriginal = parseInt(document.getElementById('prodPriceOriginal').value);
+            const priceDiscount = parseInt(document.getElementById('prodPriceDiscount').value);
+            const discount = parseInt(document.getElementById('prodDiscount').value);
+            const rating = parseFloat(document.getElementById('prodRating').value);
+            const icon = document.getElementById('prodIcon').value;
+            const color = document.getElementById('prodColor').value;
+            const sold = document.getElementById('prodSold').value.trim() || '0';
+
+            if (!name || !link || !priceOriginal || !priceDiscount || !discount || !rating) {
+                alert('❌ Harap isi semua field yang wajib!');
+                return;
+            }
+
+            const products = loadProducts();
+            const newProduct = {
+                id: Date.now(),
+                name,
+                link,
+                priceOriginal,
+                priceDiscount,
+                discount,
+                rating,
+                icon,
+                color,
+                sold
+            };
+
+            products.push(newProduct);
+            saveProducts(products);
+            
+            // Clear form
+            document.getElementById('prodName').value = '';
+            document.getElementById('prodLink').value = '';
+            document.getElementById('prodPriceOriginal').value = '';
+            document.getElementById('prodPriceDiscount').value = '';
+            document.getElementById('prodDiscount').value = '';
+            document.getElementById('prodRating').value = '';
+            document.getElementById('prodSold').value = '';
+
+            renderAdminList();
+            renderProducts();
+            
+            alert('✅ Produk berhasil ditambahkan!');
+        }
+
+        function deleteProduct(id) {
+            if (!confirm('Yakin hapus produk ini?')) return;
+            
+            let products = loadProducts();
+            products = products.filter(p => p.id !== id);
+            saveProducts(products);
+            
+            renderAdminList();
+            renderProducts();
+        }
+
+        function editProduct(id) {
+            const products = loadProducts();
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('prodName').value = product.name;
+            document.getElementById('prodLink').value = product.link;
+            document.getElementById('prodPriceOriginal').value = product.priceOriginal;
+            document.getElementById('prodPriceDiscount').value = product.priceDiscount;
+            document.getElementById('prodDiscount').value = product.discount;
+            document.getElementById('prodRating').value = product.rating;
+            document.getElementById('prodIcon').value = product.icon;
+            document.getElementById('prodColor').value = product.color;
+            document.getElementById('prodSold').value = product.sold;
+
+            // Delete old product
+            deleteProduct(id);
+            
+            // Scroll to form
+            document.querySelector('.add-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ========== IMPORT/EXPORT ==========
+        function exportData() {
+            const products = loadProducts();
+            const dataStr = JSON.stringify(products, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'shopee-products.json';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            alert('✅ Data berhasil diexport!');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const products = JSON.parse(event.target.result);
+                        if (Array.isArray(products)) {
+                            saveProducts(products);
+                            renderAdminList();
+                            renderProducts();
+                            alert('✅ Data berhasil diimport!');
+                        } else {
+                            alert('❌ Format file tidak valid!');
+                        }
+                    } catch (err) {
+                        alert('❌ Error membaca file: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ Yakin hapus SEMUA produk? Ini tidak bisa dibatalkan!')) return;
+            if (!confirm('Serius? Semua data akan hilang!')) return;
+            
+            localStorage.removeItem(STORAGE_KEY);
+            saveProducts(defaultProducts);
+            renderAdminList();
+            renderProducts();
+            alert('✅ Data direset ke default!');
+        }
+
+        // ========== BUBBLES ==========
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 60 + 20;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                bubble.style.animationDelay = Math.random() * 10 + 's';
+                container.appendChild(bubble);
+            }
+        }
+
+        // ========== COUNTDOWN ==========
+        function updateCountdown() {
+            const now = new Date();
+            const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            const diff = endOfDay - now;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        // ========== CLICK EFFECT ==========
+        function handleClick(event, url) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.style.left = event.clientX + 'px';
+            effect.style.top = event.clientY + 'px';
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 600);
+            
+            window.open(url, '_blank');
+        }
+
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            createBubbles();
+            renderProducts();
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+    </script>
+</body>
+</html>
